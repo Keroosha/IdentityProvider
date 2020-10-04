@@ -7,6 +7,6 @@ namespace IdentityProvider.Handlers
     public interface IEndpointResult
     {
         public string Name { get; }
-        public Task ApplyAsync(HttpContext context, CancellationToken cancellationToken = default);
+        public Task ExecuteAsync(HttpContext context, CancellationToken cancellationToken = default);
     }
 }

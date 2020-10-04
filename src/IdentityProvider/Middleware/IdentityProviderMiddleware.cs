@@ -8,7 +8,7 @@ namespace IdentityProvider.Middleware
 {
     public class IdentityProviderMiddleware
     {
-        private readonly IEndpointRouter _endpointHandlers;
+        private readonly IEndpointRouter _endpointRouter;
         private readonly ILogger _logger;
         private readonly RequestDelegate _next;
 
@@ -18,19 +18,19 @@ namespace IdentityProvider.Middleware
             ILogger<IdentityProviderMiddleware> logger)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _endpointHandlers = endpointRouter ?? throw new ArgumentNullException(nameof(endpointRouter));
+            _endpointRouter = endpointRouter ?? throw new ArgumentNullException(nameof(endpointRouter));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var handler = _endpointHandlers.Find(context);
+            var handler = _endpointRouter.Find(context);
             if (handler != null)
             {
                 _logger.InvokingHandler(handler.Name, context.Request.Path.ToString());
                 var result = await handler.HandleAsync(context, context.RequestAborted);
                 _logger.ApplyingResult(result.Name);
-                await result.ApplyAsync(context, context.RequestAborted);
+                await result.ExecuteAsync(context, context.RequestAborted);
                 return;
             }
 
