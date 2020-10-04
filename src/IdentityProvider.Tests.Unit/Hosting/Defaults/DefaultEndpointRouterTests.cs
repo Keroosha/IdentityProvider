@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using IdentityProvider.Configuration.Options;
 using IdentityProvider.Handlers;
 using IdentityProvider.Hosting.Defaults;
 using IdentityProvider.Tests.Unit.Common.Logging;
@@ -39,10 +40,39 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
             Assert.IsInstanceOf<StubEndpointHandler>(handler);
         }
 
+        [TestCase("/ep1")]
+        [TestCase("/ep2")]
+        public void Find_should_return_null_for_disabled_handler(string path)
+        {
+            var options = new IdentityProviderOptions
+            {
+                Endpoints =
+                {
+                    EnableAuthorizeEndpoint = false,
+                    EnableDiscoveryEndpoint = false
+                }
+            };
+            var logger = new FakeLogger<DefaultEndpointRouter>();
+            var handlers = new IEndpointHandler[]
+            {
+                new StubEndpointHandler(Constants.EndpointNames.Authorize, new PathString("/ep1")),
+                new StubEndpointHandler(Constants.EndpointNames.Discovery, new PathString("/ep2")),
+                new StubEndpointHandler("ep3", new PathString("/ep3"))
+            };
+            var router = new DefaultEndpointRouter(options, handlers, logger);
+            var ctx = new DefaultHttpContext();
+            ctx.Request.Path = new PathString(path);
+
+            var handler = router.Find(ctx);
+
+            Assert.Null(handler);
+        }
+
         [TestCase("ep1", "/ep1")]
         [TestCase("ep2", "/ep2")]
-        public void Find_should_logs_that_something_found_when_path_matched(string handler, string path)
+        public void Find_should_logs_that_handler_found_and_enabled_when_path_matched(string handler, string path)
         {
+            var options = new IdentityProviderOptions();
             var logger = new FakeLogger<DefaultEndpointRouter>();
             var handlers = new IEndpointHandler[]
             {
@@ -50,25 +80,70 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
                 new StubEndpointHandler("ep2", new PathString("/ep2")),
                 new StubEndpointHandler("ep3", new PathString("/ep3"))
             };
-            var router = new DefaultEndpointRouter(handlers, logger);
+            var router = new DefaultEndpointRouter(options, handlers, logger);
             var ctx = new DefaultHttpContext();
             ctx.Request.Path = new PathString(path);
-            var expectedLoggedValue = $"Request path {path} matched to endpoint handler: {handler}";
 
             var _ = router.Find(ctx);
 
             LoggingAssertions.AssertLog(
                 logger,
-                1,
+                0,
+                2,
                 LogLevel.Debug,
                 new EventId(2_000_000),
-                expectedLoggedValue);
+                $"Request path {path} matched to endpoint handler: {handler}");
+
+            LoggingAssertions.AssertLog(
+                logger,
+                1,
+                2,
+                LogLevel.Debug,
+                new EventId(2_000_002),
+                $"Handler enabled: {handler}");
+        }
+
+
+        [TestCase("ep1", "/ep1")]
+        [TestCase("ep2", "/ep2")]
+        public void Find_should_logs_warning_if_handler_found_but_disabled(string handler, string path)
+        {
+            var options = new IdentityProviderOptions();
+            var logger = new FakeLogger<DefaultEndpointRouter>();
+            var handlers = new IEndpointHandler[]
+            {
+                new StubEndpointHandler("ep1", new PathString("/ep1")),
+                new StubEndpointHandler("ep2", new PathString("/ep2")),
+                new StubEndpointHandler("ep3", new PathString("/ep3"))
+            };
+            var router = new DefaultEndpointRouter(options, handlers, logger);
+            var ctx = new DefaultHttpContext();
+            ctx.Request.Path = new PathString(path);
+
+            var _ = router.Find(ctx);
+
+            LoggingAssertions.AssertLog(
+                logger,
+                0,
+                2,
+                LogLevel.Debug,
+                new EventId(2_000_000),
+                $"Request path {path} matched to endpoint handler: {handler}");
+
+            LoggingAssertions.AssertLog(
+                logger,
+                1,
+                2,
+                LogLevel.Debug,
+                new EventId(2_000_002),
+                $"Handler enabled: {handler}");
         }
 
         [TestCase("ep5", "/ep5")]
         [TestCase("ep6", "/ep6")]
         public void Find_should_logs_that_nothing_was_found_when_path_not_matched(string handler, string path)
         {
+            var options = new IdentityProviderOptions();
             var logger = new FakeLogger<DefaultEndpointRouter>();
             var handlers = new IEndpointHandler[]
             {
@@ -76,7 +151,7 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
                 new StubEndpointHandler("ep2", new PathString("/ep2")),
                 new StubEndpointHandler("ep3", new PathString("/ep3"))
             };
-            var router = new DefaultEndpointRouter(handlers, logger);
+            var router = new DefaultEndpointRouter(options, handlers, logger);
             var ctx = new DefaultHttpContext();
             ctx.Request.Path = new PathString(path);
             var expectedLoggedValue = $"No endpoint entry found for request path: {path}";
@@ -85,6 +160,7 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
 
             LoggingAssertions.AssertLog(
                 logger,
+                0,
                 1,
                 LogLevel.Trace,
                 new EventId(2_000_001),
@@ -93,12 +169,13 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
 
         [TestCaseSource(nameof(IncorrectCtorArguments))]
         public void Ctor_DefaultEndpointRouter_should_throws_with_arguments_are_null(
+            IdentityProviderOptions options,
             IEnumerable<IEndpointHandler> endpointHandlers,
             ILogger<DefaultEndpointRouter> logger)
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                var _ = new DefaultEndpointRouter(endpointHandlers, logger);
+                var _ = new DefaultEndpointRouter(options, endpointHandlers, logger);
             });
         }
 
@@ -108,24 +185,34 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
             {
                 new object[]
                 {
+                    new IdentityProviderOptions(),
                     null!,
                     null!
                 },
                 new object[]
                 {
+                    null!,
                     new IEndpointHandler[] { },
                     null!
                 },
                 new object[]
                 {
                     null!,
+                    null!,
                     new FakeLogger<DefaultEndpointRouter>()
+                },
+                new object[]
+                {
+                    null!,
+                    null!,
+                    null!
                 }
             };
         }
 
         private static DefaultEndpointRouter CreateRouter()
         {
+            var options = new IdentityProviderOptions();
             var logger = new FakeLogger<DefaultEndpointRouter>();
             var handlers = new IEndpointHandler[]
             {
@@ -133,7 +220,7 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
                 new StubEndpointHandler("ep2", new PathString("/ep2")),
                 new StubEndpointHandler("ep3", new PathString("/ep3"))
             };
-            var router = new DefaultEndpointRouter(handlers, logger);
+            var router = new DefaultEndpointRouter(options, handlers, logger);
             return router;
         }
 

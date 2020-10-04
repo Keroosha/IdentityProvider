@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using IdentityProvider.Configuration.Options;
+using IdentityProvider.Extensions;
 using IdentityProvider.Handlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -11,8 +13,10 @@ namespace IdentityProvider.Hosting.Defaults
     {
         private readonly IEndpointHandler[] _endpointHandlers;
         private readonly ILogger _logger;
+        private readonly EndpointsOptions _options;
 
         public DefaultEndpointRouter(
+            IdentityProviderOptions options,
             IEnumerable<IEndpointHandler> endpointHandlers,
             ILogger<DefaultEndpointRouter> logger)
         {
@@ -21,6 +25,12 @@ namespace IdentityProvider.Hosting.Defaults
                 throw new ArgumentNullException(nameof(endpointHandlers));
             }
 
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _options = options.Endpoints;
             _endpointHandlers = endpointHandlers.ToArray();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -34,7 +44,14 @@ namespace IdentityProvider.Hosting.Defaults
                 if (requestPath.Equals(endpointHandler.Path, StringComparison.Ordinal))
                 {
                     _logger.PathMatchedToHandler(requestPathString, endpointHandler.Name);
-                    return endpointHandler;
+                    if (_options.IsDefaultHandlerEnabled(endpointHandler))
+                    {
+                        _logger.HandlerEnabled(endpointHandler.Name);
+                        return endpointHandler;
+                    }
+
+                    _logger.HandlerDisabled(endpointHandler.Name);
+                    return null;
                 }
             }
 
