@@ -40,6 +40,42 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
             Assert.IsInstanceOf<StubEndpointHandler>(handler);
         }
 
+        [TestCase("/ep1/level1")]
+        [TestCase("/ep2/level2/level2")]
+        public void Find_should_not_find_nested_paths(string path)
+        {
+            var router = CreateRouter();
+            var ctx = new DefaultHttpContext();
+            ctx.Request.Path = new PathString(path);
+
+            var handler = router.Find(ctx);
+
+            Assert.Null(handler);
+        }
+
+        [TestCase("/ep1")]
+        [TestCase("/ep2")]
+        public void Find_should_find_first_registered_mapping(string path)
+        {
+            var options = new IdentityProviderOptions();
+            var logger = new FakeLogger<DefaultEndpointRouter>();
+            var handlers = new IEndpointHandler[]
+            {
+                new OtherStubEndpointHandler("ep1", new PathString("/ep1")),
+                new StubEndpointHandler("ep1", new PathString("/ep1")),
+                new OtherStubEndpointHandler("ep2", new PathString("/ep2")),
+                new StubEndpointHandler("ep2", new PathString("/ep2"))
+            };
+            var router = new DefaultEndpointRouter(options, handlers, logger);
+            var ctx = new DefaultHttpContext();
+            ctx.Request.Path = new PathString(path);
+
+            var handler = router.Find(ctx);
+
+            Assert.NotNull(handler);
+            Assert.IsInstanceOf<OtherStubEndpointHandler>(handler);
+        }
+
         [TestCase("/ep1")]
         [TestCase("/ep2")]
         public void Find_should_return_null_for_disabled_handler(string path)
@@ -227,6 +263,23 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
         private class StubEndpointHandler : IEndpointHandler
         {
             public StubEndpointHandler(string name, PathString path)
+            {
+                Name = name;
+                Path = path;
+            }
+
+            public string Name { get; }
+            public PathString Path { get; }
+
+            public Task<IEndpointResult> HandleAsync(HttpContext context, CancellationToken cancellationToken = default)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class OtherStubEndpointHandler : IEndpointHandler
+        {
+            public OtherStubEndpointHandler(string name, PathString path)
             {
                 Name = name;
                 Path = path;
