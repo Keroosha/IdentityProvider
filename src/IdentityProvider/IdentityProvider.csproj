@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<LangVersion>9.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<PackageId>IdentityProvider</PackageId>
+		<AssemblyName>IdentityProvider</AssemblyName>
+		<Authors>Roman Bukin</Authors>
+		<Description>Framework for building OpenID Connect 1.0 providers on top of ASP.NET Core</Description>
+		<PackageTags>IdentityProvider;Identity;OpenID;OpenID Connect;OpenID Connect 1.0;OAuth;OAuth2;OAuth 2.0;Security;</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReleaseNotes>https://github.com/vanbukin/IdentityProvider/releases</PackageReleaseNotes>
+		<PackageProjectUrl>https://github.com/vanbukin/IdentityProvider</PackageProjectUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0-rc.1.20451.14" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+</Project>
