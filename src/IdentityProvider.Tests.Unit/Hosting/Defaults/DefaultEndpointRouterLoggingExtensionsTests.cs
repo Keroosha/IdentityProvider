@@ -7,18 +7,18 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
 {
     public class DefaultEndpointRouterLoggingExtensionsTests
     {
-        [TestCase("/foo", "FooHandler")]
-        [TestCase("/bar", "BarHandler")]
-        public void PathMatchedToHandler_should_log_debug_with_eventId_2_000_000(string path, string handler)
+        [TestCase("/foo", "FooEndpoint")]
+        [TestCase("/bar", "BarEndpoint")]
+        public void PathMatchedToEndpoint_should_log_debug_with_eventId_2_000_000(string path, string endpoint)
         {
             var logger = new FakeLogger();
-            var expectedLoggedValue = $"Request path {path} matched to endpoint handler: {handler}";
+            var expectedLoggedValue = $"Request path {path} matched to endpoint: {endpoint}";
 
             LoggingAssertions.CallExtensionsAndAssertLog(
                 logger,
-                DefaultEndpointRouterLoggingExtensions.PathMatchedToHandler,
+                DefaultEndpointRouterLoggingExtensions.PathMatchedToEndpoint,
                 path,
-                handler,
+                endpoint,
                 LogLevel.Debug,
                 new EventId(2_000_000),
                 expectedLoggedValue);
@@ -42,16 +42,16 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
 
         [TestCase(Constants.EndpointNames.Authorize)]
         [TestCase(Constants.EndpointNames.Discovery)]
-        [TestCase("CustomHandler")]
-        public void HandlerEnabled_should_log_debug_with_eventId_2_000_002(string handler)
+        [TestCase("CustomEndpoint")]
+        public void EndpointEnabled_should_log_debug_with_eventId_2_000_002(string endpoint)
         {
             var logger = new FakeLogger();
-            var expectedLoggedValue = $"Handler enabled: {handler}";
+            var expectedLoggedValue = $"Endpoint enabled: {endpoint}";
 
             LoggingAssertions.CallExtensionsAndAssertLog(
                 logger,
-                DefaultEndpointRouterLoggingExtensions.HandlerEnabled,
-                handler,
+                DefaultEndpointRouterLoggingExtensions.EndpointEnabled,
+                endpoint,
                 LogLevel.Debug,
                 new EventId(2_000_002),
                 expectedLoggedValue);
@@ -59,16 +59,16 @@ namespace IdentityProvider.Tests.Unit.Hosting.Defaults
 
         [TestCase(Constants.EndpointNames.Authorize)]
         [TestCase(Constants.EndpointNames.Discovery)]
-        [TestCase("CustomHandler")]
-        public void HandlerDisabled_should_log_warning_with_eventId_2_000_003(string handler)
+        [TestCase("CustomEndpoint")]
+        public void EndpointDisabled_should_log_warning_with_eventId_2_000_003(string endpoint)
         {
             var logger = new FakeLogger();
-            var expectedLoggedValue = $"Handler disabled: {handler}";
+            var expectedLoggedValue = $"Endpoint disabled: {endpoint}";
 
             LoggingAssertions.CallExtensionsAndAssertLog(
                 logger,
-                DefaultEndpointRouterLoggingExtensions.HandlerDisabled,
-                handler,
+                DefaultEndpointRouterLoggingExtensions.EndpointDisabled,
+                endpoint,
                 LogLevel.Warning,
                 new EventId(2_000_003),
                 expectedLoggedValue);

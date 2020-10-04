@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace IdentityProvider.Handlers
+namespace IdentityProvider.Endpoints
 {
     public interface IEndpointResult
     {

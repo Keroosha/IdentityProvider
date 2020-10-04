@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using IdentityProvider.Configuration.Options;
+using IdentityProvider.Endpoints;
 using IdentityProvider.Extensions;
-using IdentityProvider.Handlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -11,18 +11,18 @@ namespace IdentityProvider.Hosting.Defaults
 {
     public class DefaultEndpointRouter : IEndpointRouter
     {
-        private readonly IEndpointHandler[] _endpointHandlers;
+        private readonly IEndpoint[] _endpoints;
         private readonly ILogger _logger;
         private readonly EndpointsOptions _options;
 
         public DefaultEndpointRouter(
             IdentityProviderOptions options,
-            IEnumerable<IEndpointHandler> endpointHandlers,
+            IEnumerable<IEndpoint> endpoints,
             ILogger<DefaultEndpointRouter> logger)
         {
-            if (endpointHandlers == null)
+            if (endpoints == null)
             {
-                throw new ArgumentNullException(nameof(endpointHandlers));
+                throw new ArgumentNullException(nameof(endpoints));
             }
 
             if (options == null)
@@ -31,32 +31,31 @@ namespace IdentityProvider.Hosting.Defaults
             }
 
             _options = options.Endpoints;
-            _endpointHandlers = endpointHandlers.ToArray();
+            _endpoints = endpoints.ToArray();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public IEndpointHandler? Find(HttpContext context)
+        public IEndpoint? Find(HttpContext context)
         {
             var requestPath = context.Request.Path;
             var requestPathString = requestPath.ToString();
-            foreach (var endpointHandler in _endpointHandlers)
+            foreach (var endpoint in _endpoints)
             {
-                if (requestPath.Equals(endpointHandler.Path, StringComparison.Ordinal))
+                if (requestPath.Equals(endpoint.Path, StringComparison.Ordinal))
                 {
-                    _logger.PathMatchedToHandler(requestPathString, endpointHandler.Name);
-                    if (_options.IsDefaultHandlerEnabled(endpointHandler))
+                    _logger.PathMatchedToEndpoint(requestPathString, endpoint.Name);
+                    if (_options.IsEndpointEnabled(endpoint))
                     {
-                        _logger.HandlerEnabled(endpointHandler.Name);
-                        return endpointHandler;
+                        _logger.EndpointEnabled(endpoint.Name);
+                        return endpoint;
                     }
 
-                    _logger.HandlerDisabled(endpointHandler.Name);
+                    _logger.EndpointDisabled(endpoint.Name);
                     return null;
                 }
             }
 
             _logger.NoEndpointForPath(requestPathString);
-
             return null;
         }
     }

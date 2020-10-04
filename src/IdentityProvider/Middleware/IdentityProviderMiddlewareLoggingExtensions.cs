@@ -5,29 +5,29 @@ namespace IdentityProvider.Middleware
 {
     public static class IdentityProviderMiddlewareLoggingExtensions
     {
-        private static readonly Action<ILogger, string, string, Exception?> _invokingHandler;
-        private static readonly Action<ILogger, string, Exception?> _applyingResult;
+        private static readonly Action<ILogger, string, string, Exception?> _invokingEndpoint;
+        private static readonly Action<ILogger, string, Exception?> _executingResult;
 
         static IdentityProviderMiddlewareLoggingExtensions()
         {
-            _invokingHandler = LoggerMessage.Define<string, string>(
+            _invokingEndpoint = LoggerMessage.Define<string, string>(
                 LogLevel.Information,
                 new EventId(1_000_000),
-                "Invoking IdentityProvider handler: {handler} for {uri}");
-            _applyingResult = LoggerMessage.Define<string>(
+                "Invoking IdentityProvider endpoint: {endpoint} for {uri}");
+            _executingResult = LoggerMessage.Define<string>(
                 LogLevel.Trace,
                 new EventId(1_000_001),
-                "Applying result: {result}");
+                "Invoking result: {result}");
         }
 
-        public static void InvokingHandler(this ILogger logger, string handler, string uri)
+        public static void InvokingEndpoint(this ILogger logger, string handler, string uri)
         {
-            _invokingHandler(logger, handler, uri, null);
+            _invokingEndpoint(logger, handler, uri, null);
         }
 
-        public static void ApplyingResult(this ILogger logger, string result)
+        public static void ExecutingResult(this ILogger logger, string result)
         {
-            _applyingResult(logger, result, null);
+            _executingResult(logger, result, null);
         }
     }
 }

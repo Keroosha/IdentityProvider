@@ -1,15 +1,15 @@
 ﻿using IdentityProvider.Configuration.Options;
-using IdentityProvider.Handlers;
+using IdentityProvider.Endpoints;
 
 namespace IdentityProvider.Extensions
 {
     public static class EndpointOptionsExtensions
     {
-        public static bool IsDefaultHandlerEnabled(
+        public static bool IsEndpointEnabled(
             this EndpointsOptions options,
-            IEndpointHandler handler)
+            IEndpoint endpoint)
         {
-            return handler.Name switch
+            return endpoint.Name switch
             {
                 Constants.EndpointNames.Authorize => options.EnableAuthorizeEndpoint,
                 Constants.EndpointNames.CheckSession => options.EnableCheckSessionEndpoint,

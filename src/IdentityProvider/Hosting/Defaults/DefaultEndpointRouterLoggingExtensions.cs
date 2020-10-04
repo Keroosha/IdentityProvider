@@ -5,34 +5,34 @@ namespace IdentityProvider.Hosting.Defaults
 {
     public static class DefaultEndpointRouterLoggingExtensions
     {
-        private static readonly Action<ILogger, string, string, Exception?> _pathMatchedToHandler;
+        private static readonly Action<ILogger, string, string, Exception?> _pathMatchedToEndpoint;
         private static readonly Action<ILogger, string, Exception?> _noEndpointForPath;
-        private static readonly Action<ILogger, string, Exception?> _handlerEnabled;
-        private static readonly Action<ILogger, string, Exception?> _handlerDisabled;
+        private static readonly Action<ILogger, string, Exception?> _endpointEnabled;
+        private static readonly Action<ILogger, string, Exception?> _endpointDisabled;
 
         static DefaultEndpointRouterLoggingExtensions()
         {
-            _pathMatchedToHandler = LoggerMessage.Define<string, string>(
+            _pathMatchedToEndpoint = LoggerMessage.Define<string, string>(
                 LogLevel.Debug,
                 new EventId(2_000_000),
-                "Request path {path} matched to endpoint handler: {handler}");
+                "Request path {path} matched to endpoint: {endpoint}");
             _noEndpointForPath = LoggerMessage.Define<string>(
                 LogLevel.Trace,
                 new EventId(2_000_001),
                 "No endpoint entry found for request path: {path}");
-            _handlerEnabled = LoggerMessage.Define<string>(
+            _endpointEnabled = LoggerMessage.Define<string>(
                 LogLevel.Debug,
                 new EventId(2_000_002),
-                "Handler enabled: {handler}");
-            _handlerDisabled = LoggerMessage.Define<string>(
+                "Endpoint enabled: {endpoint}");
+            _endpointDisabled = LoggerMessage.Define<string>(
                 LogLevel.Warning,
                 new EventId(2_000_003),
-                "Handler disabled: {handler}");
+                "Endpoint disabled: {endpoint}");
         }
 
-        public static void PathMatchedToHandler(this ILogger logger, string path, string handler)
+        public static void PathMatchedToEndpoint(this ILogger logger, string path, string handler)
         {
-            _pathMatchedToHandler(logger, path, handler, null);
+            _pathMatchedToEndpoint(logger, path, handler, null);
         }
 
         public static void NoEndpointForPath(this ILogger logger, string path)
@@ -40,14 +40,14 @@ namespace IdentityProvider.Hosting.Defaults
             _noEndpointForPath(logger, path, null);
         }
 
-        public static void HandlerEnabled(this ILogger logger, string handler)
+        public static void EndpointEnabled(this ILogger logger, string handler)
         {
-            _handlerEnabled(logger, handler, null);
+            _endpointEnabled(logger, handler, null);
         }
 
-        public static void HandlerDisabled(this ILogger logger, string handler)
+        public static void EndpointDisabled(this ILogger logger, string handler)
         {
-            _handlerDisabled(logger, handler, null);
+            _endpointDisabled(logger, handler, null);
         }
     }
 }

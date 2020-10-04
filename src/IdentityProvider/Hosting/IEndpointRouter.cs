@@ -1,10 +1,10 @@
-﻿using IdentityProvider.Handlers;
+﻿using IdentityProvider.Endpoints;
 using Microsoft.AspNetCore.Http;
 
 namespace IdentityProvider.Hosting
 {
     public interface IEndpointRouter
     {
-        public IEndpointHandler? Find(HttpContext context);
+        public IEndpoint? Find(HttpContext context);
     }
 }

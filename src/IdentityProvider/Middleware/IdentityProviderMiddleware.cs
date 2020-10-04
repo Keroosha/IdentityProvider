@@ -24,12 +24,12 @@ namespace IdentityProvider.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var handler = _endpointRouter.Find(context);
-            if (handler != null)
+            var endpoint = _endpointRouter.Find(context);
+            if (endpoint != null)
             {
-                _logger.InvokingHandler(handler.Name, context.Request.Path.ToString());
-                var result = await handler.HandleAsync(context, context.RequestAborted);
-                _logger.ApplyingResult(result.Name);
+                _logger.InvokingEndpoint(endpoint.Name, context.Request.Path.ToString());
+                var result = await endpoint.ProcessAsync(context, context.RequestAborted);
+                _logger.ExecutingResult(result.Name);
                 await result.ExecuteAsync(context, context.RequestAborted);
                 return;
             }
